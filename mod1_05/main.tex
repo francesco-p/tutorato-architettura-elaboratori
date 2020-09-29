@@ -1,0 +1,360 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{multirow}
+\usepackage{todonotes}
+\newtheorem{domanda}{Domanda}[section]
+
+\title{Tutorato Architettura degli Elaboratori Modulo 1 \\ Lezione 5}
+\author{Francesco Pelosin}
+\date{20 December 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Calcolo delle Prestazioni}
+
+\begin{itemize}
+
+     \item $F$: frequenza del ciclo di clock. Equivale al numero di volte che il ciclo di clock si ripete in un secondo $F=\frac{1}{T}$.
+
+     \item $T$: periodo del ciclo di clock. Equivale al tempo di durata di un ciclo di clock, è il reciproco della frequenza di clock: $T = \frac{1}{F}$.
+
+     \item $CPI_{m}$: (Cycles Per Instruction) numero di cicli di clock impiegati per eseguire una particolare istruzione su una data macchina $m$.
+
+     \item $CPI_{m,c}$: numero di cicli medi data una certa macchina $m$ ed un certo compilatore $c$. Equivale alla media pesata del $CPI_{m}$ di ciascuna istruzione per la distribuzione delle istruzioni del compilatore.
+
+     \item $IC$: (Instruction Count) numero di istruzioni di un programma.
+
+     \item $ExeTime_{m}$: (Execution Time) tempo di esecuzione di un particolare programma su una particolare macchina $m$. Equivale al numero di cicli medi per istruzione $CPI_{m,c}$ per il numero di istruzioni del programma $IC$, per il periodo del ciclo.
+
+     $$ ExeTime_{m} = IC \cdot  CPI_{m,c} \cdot  T = IC \cdot  CPI_{m,c} \cdot  \frac{1}{F}$$
+
+     \item $Perf_{m}$: performance di una particolare macchina $m$. Una prestazione migliore corrisponde ad un tempo di esecuzione più breve, viene adottato quindi, come misura della performance di una macchina, l'inverso del tempo di esecuzione.
+
+     $$Perf_{m} = \frac{1}{ExeTime_{m}}$$
+
+     \newpage
+     
+     \item $Speedup(m_1,m_2)$: Misura quanto un sistema $m_1$ è più veloce di un sistema $m_2$. 
+     
+     $$Speedup(m_1,m_2) = \frac{Perf_{m_1}}{Perf_{m_2}} = \frac{ExeTime_{m_2}}{ExeTime_{m_1}}$$
+    
+    \item MIPS: milioni di istruzioni per secondo, $MIPS = \frac{IC}{ExeTime \cdot 10^{6}} = \dots = \frac{F}{CPI \cdot 10^6}$. 
+
+\end{itemize}
+
+
+
+\subsection{Esercizo Acquisto Macchina}
+Si considerino due diverse macchine: $M_1$ ed $M_2$, aventi lo stesso set di istruzioni, partizionato in tre classi $A,B,C$.
+    
+    
+\begin{table}[h!]
+\begin{tabular}{c|c|c|c|c|c|}
+\cline{2-6}
+                          & $CPI_{M_1}$ & $CPI_{M_2}$ & Utilizzo $C_1$ & Utilizzo $C_2$ & Utilizzo $C_3$ \\ \hline
+\multicolumn{1}{|c|}{$A$} & 4           & 2           & 30\%           & 30\%           & 50\%           \\ \hline
+\multicolumn{1}{|c|}{$B$} & 6           & 4           & 50\%           & 20\%           & 30\%           \\ \hline
+\multicolumn{1}{|c|}{$C$} & 8           & 3           & 20\%           & 50\%           & 20\%           \\ \hline
+\end{tabular}
+\end{table}
+    
+    \begin{itemize}
+        \item $M_1$ ha una frequenza di clock pari a $400$ MHz
+        \item $M_2$ ha una frequenza di clock pari a $200$ MHz
+        \item $C_1$ è un compilatore sviluppato dai produttori di $M_1$
+        \item $C_2$ è un compilatore sviluppato dai produttori di $M_2$
+        \item $C_3$ è un compilatore sviluppato da un terzo costruttore.
+    \end{itemize}
+    
+    Si supponga che il codice prodotto dai tre compilatori per uno stesso programma preveda un numero uguale  di istruzioni eseguite ($IC$), ma una diversa distribuzione nelle varie classi come riportato nella tabella.
+    
+    \begin{domanda}
+    Usando $C_1$ su $M_1$ e $M_2$, di quanto $M_1$ è più veloce di $M_2$?
+    \end{domanda}
+    \paragraph{Soluzione}
+    L'esercizio ci chiede di calcolare lo $Speedup(M_1, M_2)$. Iniziamo, dunque, calcolando il tempo di esecuzione di $M_1$ e $M_2$ usando il compilatore $C_1$. Per fare questo ci serve il $CPI_{M_1, C_1}$ e $CPI_{M_2, C_1}$ nei due casi.
+    
+    $$CPI_{M_1, C_1} = 4 \cdot  0.3 + 6\cdot 0.5 + 8\cdot 0.2 = 1.2 + 3 + 1.6 = 5.8$$
+    $$CPI_{M_2, C_1} = 2 \cdot  0.3 + 4\cdot 0.5 + 3\cdot 0.2 = 0.6 + 2 + 0.6 = 3.2$$
+    
+    Il tempo di esecuzione di $M_1$ è:
+    
+    $$ExeTime_{M_1} = IC\cdot CPI_{M_1,C_1} \cdot  \frac{1}{F_{M_{1}}} = \frac{IC\cdot 5.8}{400\cdot 10^{6}}$$
+    ossia:
+    $$Perf_{M_{1}} = \frac{400\cdot 10^{6}}{IC\cdot 5.8} $$
+    
+    Il tempo di esecuzione di $M_2$ è:
+    
+    $$ExeTime_{M_2} = IC\cdot CPI_{M_2,C_1} \cdot  \frac{1}{F_{M_{2}}} = \frac{IC\cdot 3.2}{200\cdot 10^{6}}$$
+    ossia:
+    $$Perf_{M_{2}} = \frac{200\cdot 10^{6}}{IC\cdot 3.2} $$
+    
+    Ora abbiamo tutti i dati necessari per rispondere alla domanda:
+    
+    $$Speedup(M_1, M_2) = \frac{Perf_{M_1}}{Perf_{M_2}} = \frac{400\cdot 10^6}{IC \cdot 5.8} \cdot  \frac{IC \cdot 3.2}{200\cdot 10^6}$$
+    
+    semplificando avremo:
+    
+    $$Speedup(M_1, M_2) = \frac{6.4}{5.8} = 1.10$$
+    
+    Utilizzando il compilatore $C_1$ il sistema $M_1$ è $1.10$ volte più performante di $M_2$.
+    
+    \begin{domanda}
+    Usando $C_2$ su $M1$ e $M_2$, quanto più veloce è $M_2$ rispetto a $M_1$? 
+    \end{domanda}
+    
+    \paragraph{Soluzione}
+    Usiamo la distribuzione delle istruzioni del compilatore $C_2$ e procediamo in maniera analoga all'esercizio precedente:
+    
+    $$CPI_{M_1, C_2} = 4 \cdot  0.3 + 6\cdot 0.2 + 8\cdot 0.5 = 1.2 + 1.2 + 4 = 6.4$$
+    $$CPI_{M_2, C_2} = 2 \cdot  0.3 + 4\cdot 0.2 + 3\cdot 0.5 = 0.6 + 0.8 + 1.5 = 2.9$$
+    
+    Il tempo di esecuzione di $M_1$ è:
+    
+    $$ExeTime_{M_1} = IC\cdot CPI_{M_1,C_2} \cdot  \frac{1}{F_{M_{1}}} = \frac{IC\cdot 6.4}{400\cdot 10^{6}}$$
+    ossia:
+    $$Perf_{M_{1}} = \frac{400\cdot 10^{6}}{IC\cdot 6.4} $$
+    
+    Il tempo di esecuzione di $M_2$ è:
+    
+    $$ExeTime_{M_2} = IC\cdot CPI_{M_2,C_2} \cdot  \frac{1}{F_{M_{2}}} = \frac{IC\cdot 2.9}{200\cdot 10^{6}}$$
+    ossia:
+    $$Perf_{M_{2}} = \frac{200\cdot 10^{6}}{IC\cdot 2.9} $$
+    
+    Ora abbiamo tutti i dati necessari per rispondere alla domanda:
+    
+    $$Speedup(M_2, M_1) = \frac{Perf_{M_2}}{Perf_{M_1}} = \frac{200\cdot 10^6}{IC\cdot 2.9} \cdot  \frac{IC\cdot 6.4}{400\cdot 10^6}$$
+    
+    semplificando avremo:
+    
+    $$Speedup(M_2, M_1) = \frac{6.4}{5.8} = 1.10$$
+    
+    Utilizzando il compilatore $C_2$ il sistema $M_2$ risulta $1.10$ volte più performante dim $M_1$.   
+
+    \begin{domanda}
+    Se si acquista $M_1$, quale dei tre compilatori conviene usare?
+    Se si acquista $M_2$, quale dei tre compilatori conviene usare?
+    \end{domanda}
+    
+    Calcoliamo le prestazionei del compilatore $C_3$:
+    
+    $$CPI_{M_1,C_3} = 4\cdot 0.5 + 6\cdot 0.3 + 8\cdot 0.2 = 2+1.8+1.6 = 5.4$$
+    $$CPI_{M_2,C_3} = 2\cdot 0.5 + 4\cdot 0.3 + 3\cdot 0.2 = 1+1.2+0.6 = 2.8$$
+    
+    Tabella delle $CPI$:
+
+
+\begin{table}[h!]
+\begin{tabular}{l|c|c|c|}
+\cline{2-4}
+                            & $C_1$ & $C_2$ & $C_3$ \\ \hline
+\multicolumn{1}{|l|}{$M_1$} & 5.8   & 6.4   & 5.4   \\ \hline
+\multicolumn{1}{|l|}{$M_2$} & 3.2   & 2.9   & 2.8   \\ \hline
+\end{tabular}
+\end{table}
+
+    Dalla tabella si può vedere che in tutti i casi il compilatore $C_3$ ha una $CPI$ media più bassa degli altri, quindi è da preferire sia per $M_1$ che per $M_2$.
+    
+    \begin{domanda}
+    Considerando che $C_3$ si è rivelato il miglior compilatore. Quale macchina costituirà il miglior acquisto, supponendo che tutti gli altri criteri siano identici, compreso il prezzo?
+    \end{domanda}
+    
+    \paragraph{Risposta}
+    Bisogna confrontare le prestazioni delle due macchine utilizzando, ovviamente, il compilatore $C_3$. Risulta:
+    
+    $$ExeTime_{M_1} = IC\cdot CPI_{M_1,C_3} \cdot  \frac{1}{F_{M_{1}}} = \frac{IC\cdot 5.4}{400\cdot 10^{6}}$$
+    ossia:
+    $$Perf_{M_{1}} = \frac{400\cdot 10^{6}}{IC\cdot 5.4} $$
+    
+    Il tempo di esecuzione di $M_2$ è:
+    
+    $$ExeTime_{M_2} = IC\cdot CPI_{M_2,C_3} \cdot  \frac{1}{F_{M_{2}}} = \frac{IC\cdot 2.8}{200\cdot 10^{6}}$$
+    ossia:
+    $$Perf_{M_{2}} = \frac{200\cdot 10^{6}}{IC\cdot 2.8} $$
+    
+    Compariamo le macchine:
+    
+    $$Speedup(M_1, M_2) = \frac{Perf_{M_1}}{Perf_{M_2}} = \frac{400\cdot 10^6}{IC\cdot 5.4} \cdot  \frac{IC\cdot 2.8}{200\cdot 10^6}$$
+    
+    semplificando avremo:
+    
+    $$Speedup(M_1, M_2) = \frac{5.6}{5.4} = 1.04$$
+    
+    Utilizzando il compilatore $C_3$ il sistema $M_1$ risulta più performante 1.04 volte rispetto la macchina $M_2$ e quindi costituisce iil miglior acquisto.
+    
+    \subsection{Esercizio: Confronto tra Macchine}
+    Considerare due macchine $M_1$ (a $300$ MHz) ed $M_2$ (a $450$ MHz) con le seguenti caratteristiche (rispetto a dei compilatori prefissati).
+    
+    
+\begin{table}[h!]
+\begin{tabular}{|c|c|c|c|}
+\hline
+Macchina               & Classe & $CPI$ & Distribuzione \\ \hline
+\multirow{4}{*}{$M_1$} & $A$      & 1     & 40\%          \\ \cline{2-4} 
+                       & $B$      & 2     & 30\%          \\ \cline{2-4} 
+                       & $C$      & 3     & 20\%          \\ \cline{2-4} 
+                       & $D$      & 4     & 10\%          \\ \hline
+\multirow{2}{*}{$M_2$} & $A$      & 1     & 40\%          \\ \cline{2-4} 
+                       & $B$      & 2     & 60\%          \\ \hline
+\end{tabular}
+\end{table}
+    
+    Considerare che per uno stesso programma, in media il codice prodotto per $M_2$ prevede il doppio di istruzioni rispetto a quello prodotto per $M_1$.
+    
+    \begin{domanda}
+    Stabilire la macchina migliore.
+    \end{domanda}
+    
+    \paragraph{Soluzione}
+    Il numero di istruzioni della macchina $M_2$ per un programma qualsiasi è mediamente il doppio delle istruzioni della macchina $M_1$, possiamo affermare:
+    
+    $$IC_{M_2} = 2 \cdot IC_{M_1} $$
+
+    Calcoliamo il tempo di esecuzione delle due macchine e poi confrontiamo le performances:
+    
+    $$CPI_{M_1}  = 1 \cdot 0.4 + 2 \cdot 0.3 + 3 \cdot 0.2 + 4 \cdot 0.1 = 2$$
+    
+    $$CPI_{M_2}  = 1 \cdot 0.4 + 2 \cdot 0.6 = 1.6$$
+    
+    $$Perf_{M_1} = \frac{300 \cdot 10^6}{IC_{M_1} \cdot 2}$$
+
+    $$Perf_{M_2} = \frac{450 \cdot 10^6}{2\cdot IC_{M_1} \cdot 1.6}$$
+    
+    $$Speedup(M_1, M_2) = \frac{Perf_{M_1}}{Perf_{M_2}} = \frac{300 \cdot 10^6}{IC_{M_1} \cdot 2} \cdot \frac{2 \cdot IC_{M_1} \cdot 1.6}{450 \cdot 10^6} $$
+    
+    semplificando segue:
+    
+    $$Speedup(M_1, M_2) = \frac{1.6}{1.5} = 1.067$$
+    
+    Ne segue che la macchina $M_1$ è $1.067$ volte più performante della macchina $M_2$.
+    
+    %\begin{domanda}
+    %Se si usa un nuovo compilatore su $M_2$ che riduce di $\frac{1}{3}$ il numero delle operazioni di tipo $B$, cosa succede alle prestazioni?
+    %\end{domanda}
+    
+    %\paragraph{Soluzione}
+    %\todo{Non molto chiaro}
+    %Un programma che con $M_1$ ha $IC_{M_1}$ istruzioni con $M_2$ avrà:
+    
+    %$$IC_{M_2} = 2 \cdot IC_{M_1} \cdot 0.4 + 2 \cdot IC_{M_1} \cdot 0.6 \cdot \frac{2}{3} = 1.6 \cdot IC_{M_1}$$
+    
+    %La distribuzione si calcola come segue: dato un programma che col precedente compilatore aveva $IC_{M}$ istruzioni, col nuovo compilatore avrà:
+    
+    %$$IC_{M_2} = 0.4 \cdot IC_{M} + 0.6 \cdot \frac{2}{3} \cdot IC_{M} = 0.8 \cdot IC_{M}$$
+    
+    %La distribuzione quindi sarà:
+    
+    %\begin{table}[h!]
+    %\begin{tabular}{|c|c|c|}
+    %\hline
+    %\textbf{Classe} & \textbf{Cicli} & \textbf{Distribuzione}                               \\ \hline
+    %$A$             & 1              & $\frac{0.4 * IC_{M}}{0.8 * IC_{M}} \cdot %100 = 50\%$ \\ \hline
+    %$B$             & 2              & $\frac{0.4 * IC_{M}}{0.8 * IC_{M}} \cdot %100 = 50\%$ \\ \hline
+    %\end{tabular}
+    %\end{table}
+
+    %La $CPI_{M_1}$ col nuovo compilatore sarà:
+    
+    %$$CPI_{M_1} = 1 \cdot 0.5 + 2 \cdot 0.5 = 1.5$$
+    
+    %confrontiamo le due macchine:
+    
+    %$$Speedup(M_2, M_1) = \frac{Perf_{M_2}}{Perf_{M_1}} = \frac{450 \cdot 10^6}{1.6 \cdot IC_{M_1} \cdot 1.5} \cdot \frac{2 \cdot IC_{M_1}}{300 \cdot 10^6}$$
+
+    %$$Speedup(M_2, M_1) = \frac{9}{7.2} = 1.25$$
+    
+    %Concludendo, la macchina $M_2$ in questo caso è migliore della macchina $M_1$.
+    
+    \subsection{Esercizio: Lunghezza del codice}
+    
+    Considerare due macchine $M_1$ (a $3$ GHz) ed $M_2$ (a $1.5$ GHz). La seguente tabella illustra le classi di istruzioni macchina, i relativi $CPI$ medi e la distribuzione di probabilità delle istruzioni generate dallo stesso compilatore ($C$).
+    
+\begin{table}[h!]
+\begin{tabular}{|c|c|c|c|}
+\hline
+Macchina               & Classe & $ICP$ & Distribuzione \\ \hline
+\multirow{4}{*}{$M_1$} & $A$    & 1     & 40\%          \\ \cline{2-4} 
+                       & $B$    & 2     & 30\%          \\ \cline{2-4} 
+                       & $C$    & 3     & 20\%          \\ \cline{2-4} 
+                       & $D$    & 4     & 10\%          \\ \hline
+\multirow{2}{*}{$M_2$} & $A$    & 1     & 60\%          \\ \cline{2-4} 
+                       & $B$    & 2     & 40\%          \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{domanda}
+Supponendo di sapere che il codice prodotto, compilando lo stesso programma per le due
+piattaforme, ha identiche prestazioni sia per $M_1$ che per $M_2$, calcolare in che rapporto devono stare i numeri di istruzioni prodotte per i due programmi (ovvero, $IC_{M_1}$ e $IC_{M_2}$) perché ciò si verifichi.
+\end{domanda}
+
+\paragraph{Soluzione}
+
+Dobbiamo calcolare il $CPI$ medio per le due macchine.
+
+$$CPI_{M_1,C} = 1 \cdot 0.4 + 2 \cdot 0.3 + 3 \cdot 0.2 + 4 \cdot 0.1 = 2$$
+
+$$CPI_{M_2,C} = 1 \cdot 0.6 + 2 \cdot 0.4 = 1.4$$
+
+I tempi di esecuzione si esprimono come segue:
+
+$$ExeTime_{M_1} = \frac{CPI_{M_1,C} \cdot IC_{M_1}}{F_{M_1}} = \frac{2 \cdot IC_{M_1}}{3 \cdot 10^9} = 0.66 \cdot 10^{-9} \cdot IC_{M_1}$$
+
+$$ExeTime_{M_2} = \frac{CPI_{M_2,C} \cdot IC_{M_2}}{F_{M_2}} = \frac{1.4 \cdot IC_{M_2}}{1.5 \cdot 10^9} = 0.93 \cdot 10^{-9} \cdot IC_{M_2}$$
+
+Affinchè le prestazioni siano le stesse i tempi di esecuzione dovranno essere uguali per cui:
+
+$$ExeTime_{M_1} = ExeTime_{M_2}$$
+$$0.66 \cdot 10^{-9} \cdot IC_{M_1} = 0.93 \cdot 10^{-9} \cdot IC_{M_2}$$
+$$IC_{M_1} = \frac{0.93}{0.66} \cdot IC_{M_2}$$
+$$IC_{M_1} = 1.409 \cdot IC_{M_2}$$
+
+%\subsection{Esercizio: $CPI$ medio ideale (1)}
+%Un computer a $1$ GHz, nell’eseguire un certo programma, ha una prestazione ideale di $500$ MIPS.
+
+%\begin{domanda}
+%Calcolare il $CPI$ medio ideale.
+%\end{domanda}
+
+%\paragraph{Soluzione}
+%In un secondo il computer esegue $0.5$ G istruzioni quindi abbiamo: $0.5 \times 10^9 = \frac{10^9}{CPI}$ da cui $CPI = 2$. \todo{Non chiaro}
+
+
+%\subsection{Esercizio: $CPI$ medio ideale}
+%Considerare l'esecuzione di un programma $P$ su una data $CPU$.
+
+%\begin{domanda}
+%Calcolare il $CPI$ ideale, considerando che il $CPI$ medio delle load/store è 4.5, il $CPI$ medio delle altre istruzioni è 2, mentre la percentuale di load/store è del 40\%.
+%\end{domanda}
+
+%\paragraph{Soluzione}
+%Riscriviamo i dati nella seguente tabella:
+
+%\begin{table}[h!]
+%\begin{tabular}{|c|c|c|}
+%\hline
+%Classe     & $CPI$ & Distribuzione \\ \hline
+%load/store & 4.5   & 40\%          \\ \hline
+%altre      & 2     & 60\%          \\ \hline
+%\end{tabular}
+%\end{table}
+
+%Di conseguenza:
+
+%$$CPI_{Id} = 0.4 \cdot CPI_{l/s} + 0.6 \cdot CPI_{altre} = 0.4 \cdot 4.5 + 0.6 \cdot 2 = 3$$
+
+%\begin{domanda}
+%Calcolare i tempi ideali per eseguire $P$ considerando che $IC = 200 \cdot 10^6$, mentre la %frequenza della $CPU$ è di $500 MHz$.
+%\end{domanda}
+
+%\paragraph{Soluzione}
+%Il tempo di ciclo (periodo) è:
+
+%$$T= \frac{1}{500} \cdot 10^{-6} = 2 \cdot 10^{-9}$$
+
+%Il tempo ideale di esecuzione del programma $P$ è quindi:
+
+%$$ExeTime = CPI_{id} \cdot IC \cdot T = 3 \cdot 200 \cdot 10^6 \cdot 2 \cdot 10^{-9} = 1.2 sec$$
+
+\end{document}

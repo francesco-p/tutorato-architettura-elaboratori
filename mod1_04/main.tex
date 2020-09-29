@@ -1,0 +1,554 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows}
+\usepackage{geometry}
+\usepackage{karnaugh-map}
+\usepackage{amsmath}
+\usepackage{array}
+\newcolumntype{C}{>$c<$}
+
+\title{Tutorato Architettura degli Elaboratori Modulo 1 \\ Lezione 4}
+\author{Francesco Pelosin}
+\date{9 Dicembre 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Automa di Moore}
+Un'automa di Moore può essere definito come una quintupla $(S, \Sigma, G , \wedge, T)$ costituita da:
+\begin{itemize}
+    \item un insieme finito di stati ($S$)
+    \item un insieme finito chiamato alfabeto degli ingressi ($\Sigma$)
+    \item un insieme finito chiamato alfabeto delle uscite ($\wedge$)
+    \item una funzione \texttt{next\_state}, $T : S\times \Sigma \rightarrow$ S che mappa uno stato ed un ingresso allo stato prossimo
+    \item una funzione \texttt{output}, $G : S \rightarrow \wedge$ che mappa ciascun stato nell'alfabeto delle uscite
+\end{itemize}
+
+\textit{\textbf{N.B}: per ragioni dovute alla libreria grafica usata per rappresentare gli automi di Moore, gli stati contengono al loro interno sia l'etichetta che l'output. Ricordiamo che lo standard prevede che ogni stato venga marcato all'interno con il solo valore di output.}
+
+\subsection{Esercizi}
+\begin{enumerate}
+    \item Progettare un circuito sequenziale di Moore che, ricevuto in ingresso un segnale $i$, riconosca le sottosequenze di 2 bit aventi configurazione 00 e 11 e, in corrispondenza, produca in uscita un segnale $o$ pari a 1. Per tutte le altre configurazioni delle sottosequenze di 2 bit in ingresso, $o$ deve essere pari a 0. Le sottosequenze di 2 bit non si sovrappongono. Un esempio di input e output del circuito in cui le sottosequenze sono state divise in gruppi di 2 bit è il seguente:
+    \begin{itemize}
+        \item $i =$ $10$ $11$ $01$ $00$ $01$ $11$ $11$
+        \item $o =$ $00$ $01$ $00$ $01$ $00$ $01$ $01$
+    \end{itemize}
+    Definire l’automa a stati finiti di Moore, ricavare le tabelle di verità e le forme SP minime.
+
+    \item Si progetti un circuito sequenziale che modella un semplice sistema di deposito merci. Il circuito riceve in ingresso un segnale $i$ che indica, ad ogni ciclo di clock, il tipo di operazione richiesta. In particolare, $i = 1$ indica una richiesta di ingresso merce al deposito, mentre $i = 0$ indica una richiesta di uscita merce dal deposito. Si assumano i seguenti vincoli per il sistema:
+    \begin{itemize}
+        \item entra ed esce dal deposito sempre una sola tipologia di merce
+        \item una richiesta di ingresso è sempre relativa a 2 unità di merce
+        \item una richiesta di uscita è sempre relativa a 3 unità di merce
+        \item il deposito può ospitare fino a 6 unità di merce
+        \item una richiesta di ingresso merce viene ignorata se il deposito in quel momento non ha sufficiente spazio per ospitare la merce
+        \item una richiesta di uscita merce viene ignorata se il deposito in quel momento non ha merce sufficiente da far uscire
+    \end{itemize}
+    Il circuito deve fornire in uscita un segnale a tre bit $o_2$, $o_1$, $o_0$ che indica, ad ogni ciclo di clock, lo spazio disponibile in deposito ($o_2$ cifra più significativa). Si richiede di:
+    \begin{itemize}
+        \item disegnare l'automa a stati finiti che modella il sistema
+        \item definire la codifica degli stati del sistema e scrivere le tabelle di verità per le funzioni \texttt{output} e \texttt{next\_state}
+        \item minimizzare le funzioni \texttt{output} e \texttt{next\_state}
+    \end{itemize}
+\end{enumerate}
+
+
+
+\subsection{Soluzioni}
+\begin{enumerate}
+
+\item Per prima cosa disegnamo l'automa a stati finiti che modella il sistema:
+\begin{center}
+   \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+   \node[state,initial] (q_0)   {$q_0$, 0}; 
+   \node[state] (q_1) [above right=of q_0] {$q_1$, 0}; 
+   \node[state] (q_2) [below right=of q_0] {$q_2$, 0}; 
+   \node[state](q_3) [below right=of q_1] {$q_3$, 1};
+    \path[->] 
+    (q_0) edge[bend left, below]  node {0} (q_1)
+          edge[bend left, above]  node [swap] {1} (q_2)
+    (q_1) edge[bend left, above]  node  {0} (q_3)
+          edge[bend left, above]  node  {1} (q_0)
+    (q_2) edge[bend left, below]  node  {0} (q_0)
+          edge[bend left, below]  node  {1} (q_3)
+    (q_3) edge[bend left, below]  node  {1} (q_2)
+          edge[bend left, above]  node  {0} (q_1)
+    \end{tikzpicture} 
+\end{center}
+Dove:
+\begin{itemize}
+    \item $q_0$: codifica che l'automa non ha ancora riconosciuto la sequenza
+    \item $q_1$: codifica che l'automa ha letto il primo 0
+    \item $q_2$: codifica che l'automa ha letto il primo 1
+    \item $q_3$: codifica che l'automa ha riconosciuto la sequenza
+\end{itemize}
+Definiamo ora la codifica degli stati e le funzioni \texttt{output} e \texttt{next\_state}:
+\begin{equation*}
+    \begin{array}{c c c c c}
+        \begin{array}{c|c c}
+        Stato & s_1 & s_0\\
+        \hline
+        q_0 & 0 & 0\\
+        q_1 & 0 & 1\\
+        q_2 & 1 & 0\\
+        q_3 & 1 & 1\\
+        \end{array}
+        &      &
+        
+        \begin{array}{c c|c}
+        s_1 & s_0 & o\\
+        \hline
+        0 & 0 & 0\\
+        0 & 1 & 0\\
+        1 & 0 & 0\\
+        1 & 1 & 1\\
+        \end{array}
+        &      &
+        
+        \begin{array}{c c c|c c}
+        s_1 & s_0 & i & s'_1 & s'_0\\
+        \hline
+        0 & 0 & 0 & 0 & 1\\
+        0 & 0 & 1 & 1 & 0\\
+        0 & 1 & 0 & 1 & 1\\
+        0 & 1 & 1 & 0 & 0\\
+        1 & 0 & 0 & 0 & 0\\
+        1 & 0 & 1 & 1 & 1\\
+        1 & 1 & 0 & 0 & 1\\
+        1 & 1 & 1 & 1 & 0\\
+        \end{array}
+        &      &
+    \end{array}
+\end{equation*}
+
+\noindent Per quanto riguarda la funzione di \texttt{output} banalmente questa equivale a: $o=s_1\cdot s_0$. Minimizziamo ora le funzioni $s_1$ e $s_0$:
+\begin{center}
+\begin{karnaugh-map}[4][2][1][$s_1 s_0$][$i$]
+    \manualterms{0,1,0,0,1,0,1,1}
+    \implicant{7}{6}
+    \implicant{1}{1}
+    \implicantedge{4}{4}{6}{6}
+\end{karnaugh-map}
+\end{center}
+\begin{itemize}
+    \item $s'_1=\sim i\cdot\sim s_1\cdot s_0 + i\cdot\sim s_0 + s_1\cdot i$
+
+\end{itemize}
+\begin{center}
+\begin{karnaugh-map}[4][2][1][$s_1 s_0$][$i$]
+    \manualterms{1,1,0,1,0,0,1,0}
+    \implicant{0}{1}
+    \implicant{1}{3}
+    \implicant{6}{6}
+\end{karnaugh-map}
+\end{center}
+\begin{itemize}
+    \item $s'_0=\sim i\cdot\sim s_1 + \sim i\cdot s_0 + i\cdot s_1\cdot\sim s_0$
+\end{itemize}
+
+Si lascia agli studenti come esercizio il compito di disegnare i circuiti corrispondenti.
+
+\item Per prima cosa disegnamo l'automa a stati finiti che modella il sistema:
+\begin{center}
+   \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+   \node[state,initial] (q_0)   {$q_0$, 110}; 
+   \node[state] (q_2) [right=of q_0] {$q_2$, 100}; 
+   \node[state] (q_4) [right=of q_2] {$q_4$, 010}; 
+   \node[state] (q_6) [right=of q_4] {$q_6$, 000};
+   \node[state] (q_1) [below=2cm] {$q_1$, 101};
+   \node[state] (q_3) [right=of q_1] {$q_3$, 011};
+   \node[state] (q_5) [right=of q_3] {$q_5$, 001};
+    \path[->] 
+    (q_0) edge[loop above] node{$0$} (q_0)
+          edge[bend left]  node  {1} (q_2)
+    (q_1) edge[loop below] node{$0$} (q_1)
+          edge[bend right]  node  {1} (q_3)
+    (q_2) edge[loop above] node{$0$} (q_2)
+          edge[bend left]  node  {1} (q_4)
+    (q_3) edge[bend right]  node  {1} (q_5)
+          edge[above] node{$0$} (q_0)
+    (q_4) edge[bend left]  node  {1} (q_6)
+          edge[above]  node  {0} (q_1)
+    (q_5) edge[loop below] node{$1$} (q_5)
+          edge[above] node{$0$} (q_2)
+    (q_6) edge[loop above] node{$1$} (q_6)
+          edge[above]  node  {0} (q_3)
+
+    \end{tikzpicture} 
+\end{center}
+Dove:
+\begin{itemize}
+    \item $q_0$: codifica il magazzino con 6 posti liberi
+    \item $q_1$: codifica il magazzino con 5 posti liberi
+    \item $q_2$: codifica il magazzino con 4 posti liberi
+    \item $q_3$: codifica il magazzino con 3 posti liberi
+    \item $q_4$: codifica il magazzino con 2 posti liberi
+    \item $q_5$: codifica il magazzino con 1 posti liberi
+    \item $q_6$: codifica il magazzino con 0 posti liberi
+\end{itemize}
+Definiamo ora la codifica degli stati:
+\begin{equation*}
+    \begin{array}{c|c c c}
+            Stato & s_2 & s_1 & s_0\\
+            \hline
+            q_0 & 0 & 0 & 0\\
+            q_1 & 0 & 0 & 1\\
+            q_2 & 0 & 1 & 0\\
+            q_3 & 0 & 1 & 1\\
+            q_4 & 1 & 0 & 0\\
+            q_5 & 1 & 0 & 1\\
+            q_6 & 1 & 1 & 0\\
+             - & 1 & 1 & 1\\
+    \end{array}
+\end{equation*}
+Osserviamo che la combinazione $s_2=1, s_1=1, s_0=1$ non codifica nessun stato in quanto ne dobbiamo codificare 7.
+Procediamo ora a definire le funzioni \texttt{output} e \texttt{next\_state}:
+\begin{equation*}
+    \begin{array}{c c c c c}
+    
+        \begin{array}{c c c | c c c}
+        s_2 & s_1 & s_0 & o_2 & o_1 & o_0\\
+        \hline
+            0 & 0 & 0 & 1 & 1 & 0\\
+            0 & 0 & 1 & 1 & 0 & 1\\
+            0 & 1 & 0 & 1 & 0 & 0\\
+            0 & 1 & 1 & 0 & 1 & 1\\
+            1 & 0 & 0 & 0 & 1 & 0\\
+            1 & 0 & 1 & 0 & 0 & 1\\
+            1 & 1 & 0 & 0 & 0 & 0\\
+            1 & 1 & 1 & x & x & x\\
+        \end{array}
+        &      &
+        
+        \begin{array}{c c c c | c c c}
+        s_2 & s_1 & s_0 & i & s'_2 & s'_1 & s'_0\\
+        \hline
+        0&0&0&0 &0&0&0 \\
+        0&0&0&1 &0&1&0 \\
+        0&0&1&0 &0&0&1 \\
+        0&0&1&1 &0&1&1 \\
+        0&1&0&0 &0&1&0 \\
+        0&1&0&1 &1&0&0 \\
+        0&1&1&0 &0&0&0 \\
+        0&1&1&1 &1&0&1\\
+        1&0&0&0 &0&0&1 \\
+        1&0&0&1 &1&1&0 \\
+        1&0&1&0 &0&1&0 \\
+        1&0&1&1 &1&0&1 \\
+        1&1&0&0 &0&1&1 \\
+        1&1&0&1 &1&1&0 \\
+        1&1&1&0 &x&x&x \\
+        1&1&1&1 &x&x&x
+        \end{array}
+        &      &
+    \end{array}
+\end{equation*}
+\noindent Minimizziamo ora le funzioni $o_2$, $o_1$ e $o_0$:
+
+\begin{center}
+\begin{karnaugh-map}[4][2][1][$s_2 s_1$][$s_0$]
+    \manualterms{1,1,0,0,1,0,0,x=0}
+    \implicant{0}{1}
+    \implicant{0}{4}
+\end{karnaugh-map}
+\end{center}
+\begin{itemize}
+    \item $o_2=\sim s_2\cdot\sim s_0 + \sim s_2\cdot\sim s_1$
+\end{itemize}
+\begin{center}
+\begin{karnaugh-map}[4][2][1][$s_2 s_1$][$s_0$]
+    \manualterms{1,0,1,0,0,1,0,x=1}
+    \implicantedge{0}{0}{2}{2}
+    \implicant{5}{7}
+\end{karnaugh-map}
+\end{center}
+\begin{itemize}
+    \item $o_1=\sim s_1\cdot\sim s_0 + s_1\cdot\ s_0$
+\end{itemize}
+\begin{center}
+\begin{karnaugh-map}[4][2][1][$s_2 s_1$][$s_0$]
+    \manualterms{0,0,0,0,1,1,1,x=1}
+    \implicant{4}{6}
+\end{karnaugh-map}
+\end{center}
+\begin{itemize}
+    \item $o_0=s_0$
+\end{itemize}
+Minimizziamo ora le funzioni $s'_2$, $s'_1$ e $s'_0$:
+
+\begin{center}
+\begin{karnaugh-map}[4][4][1][$s_2 s_1$][$s_0 i$]
+    \manualterms{0,0,0,0 ,0,1,1,1 ,0,0,0,x=0, 0,1,1,x=1}
+    \implicant{5}{15}
+    \implicant{7}{14}
+\end{karnaugh-map}
+\end{center}
+\begin{itemize}
+    \item $s'_2=s_1\cdot i + s_2\cdot i$
+\end{itemize}
+\begin{center}
+\begin{karnaugh-map}[4][4][1][$s_2 s_1$][$s_0 i$]
+    \manualterms{0,1,0,1 ,1,0,1,1 ,0,0,1,x=1, 1,0,0,x=0}
+    \implicant{1}{3}
+    \implicant{7}{6}
+    \implicant{4}{12}
+    \implicant{11}{10}
+
+\end{karnaugh-map}
+\end{center}
+\begin{itemize}
+    \item $s'_1=s_1\cdot\sim s_0\cdot\sim i + s_2\cdot\sim s_0\cdot i + \sim s_2\cdot\sim s_1\cdot i + s_2\cdot s_0\cdot\sim i$
+\end{itemize}
+\begin{center}
+\begin{karnaugh-map}[4][4][1][$s_2 s_1$][$s_0 i$]
+    \manualterms{0,0,1,1 ,0,0,0,0 ,1,0,0,x=0, 1,1,1,x=1}
+    \implicant{3}{2}
+    \implicant{12}{14}
+    \implicant{12}{8}
+\end{karnaugh-map}
+\end{center}
+\begin{itemize}
+    \item $s'_1=s_2\cdot\sim s_0\cdot\sim i + s_0\cdot i + \sim s_2\cdot\sim s_1\cdot s_0$
+\end{itemize}
+Si lascia agli studenti come esercizio il compito di disegnare i circuiti corrispondenti.
+\end{enumerate}
+
+
+
+
+\section{Automa di Mealy}
+Un'automa di Mealy può essere definito come una quintupla $(S, \Sigma, G , \wedge, T)$ costituita da:
+\begin{itemize}
+    \item un insieme finito di stati ($S$)
+    \item un insieme finito chiamato alfabeto degli ingressi ($\Sigma$)
+    \item un insieme finito chiamato alfabeto delle uscite ($\wedge$)
+    \item una funzione \texttt{next\_state}, $T : S\times \Sigma \rightarrow S$ che mappa uno stato ed un ingresso allo stato prossimo
+    \item una funzione \texttt{output}, $G : S\times \Sigma \rightarrow \wedge$ che mappa ciascun stato nell'alfabeto delle uscite
+\end{itemize}
+
+\subsection{Esercizi}
+\begin{enumerate}
+    \item Si vuole costruire un circuito sequenziale di Mealy che modella un sommatore binario bit a bit con riporto. Il circuito riceve in ingresso due segnali $i_1$ e $i_2$ e ad ogni passo deve:
+    \begin{itemize}
+        \item calcolare la somma dei due bit in ingresso e del riporto relativo al passo precedente
+        \item propagare il riporto generato dalla somma al passo successivo
+    \end{itemize}
+    Il circuito fornisce in uscita due segnali:
+    \begin{itemize}
+        \item somma che rappresenta il risultato della somma calcolata ad ogni passo
+        \item riporto che rappresenta il riporto generato ad ogni passo.
+    \end{itemize}
+    Ad esempio, supponendo che al tempo $t_{i-1}$ il riporto generato sia 1, e che al tempo $t_i$ gli ingressi siano $i_1 = 1$ e $i_2 = 0$ allora la somma calcolata al tempo $t_i$ è pari a 0 e il riporto generato è pari a 1. Si richiede di:
+    \begin{itemize}
+        \item disegnare l’automa a stati finiti che modella il circuito
+        \item definire la codifica degli stati del circuito e scrivere le tabelle di verità per le funzioni \texttt{output} e \texttt{next\_state}
+        \item minimizzare le funzioni \texttt{output} e \texttt{next\_state}
+    \end{itemize}
+    
+    \item Progettare un circuito sequenziale di Mealy con due ingressi $i_1$, $i_2$ e una uscita $o$ definita come segue:
+    \begin{itemize}
+        \item $o = 1$ se $i_1$ e $i_2$ coincidono negli ultimi tre cicli di clock
+        \item $o = 0$ altrimenti
+    \end{itemize}
+    Per i primi due cicli di clock il circuito deve dare in uscita $o=0$. Devono essere considerate eventuali sequenze sovrapposte. Ad esempio:
+    \begin{itemize}
+        \item $i_1= 01011110100 \dots$
+        \item $i_2= 11010010101 \dots$
+        \item $o= 00010000110 \dots$
+    \end{itemize}
+    Definire l’automa a stati finiti, ricavare le tabelle di verità e le forme SP minime. Disegnare infine il circuito risultante.
+    
+
+\end{enumerate}
+
+\subsection{Soluzioni}
+\begin{enumerate}
+    \item Per prima cosa disegnamo l’automa a stati finiti che modella il sistema:
+    \begin{center}
+        \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[state,initial] (q_0)   {$q_0$}; 
+        \node[state] (q_1) [right=of q_0] {$q_1$}; 
+        \path[->] 
+        (q_0) edge[loop above] node{$00/00$} (q_0)
+              edge[loop below] node{$01, 10/10$} (q_0)
+              edge[bend left]  node  {$11/01$} (q_1)
+        (q_1)edge[loop above] node{$11/11$} (q_0)
+             edge[loop below] node{$01, 10/01$} (q_0)
+             edge[bend left]  node  {$00/10$} (q_0)
+        \end{tikzpicture} 
+        \end{center}
+        Essendo l'automa di Mealy, l'output viene inserito sugli archi uscenti da uno stato \`e non pi\`u all'interno dello stato. In particolare:
+
+        \begin{itemize}
+            \item $q_0$: codifica lo stato con riporto uguale a 0
+            \item $q_1$: codifica lo stato con riporto uguale a 1 
+        \end{itemize}
+        Definiamo ora la codifica degli stati e le funzioni output e next\texttt{\char`_}state:
+        \begin{equation*}
+        \begin{array}{c c c c c}
+            \begin{array}{c|c c}
+            Stato & s_0\\
+            \hline
+            q_0 & 0 \\
+            q_1 & 1 \\
+            \end{array}
+            &      &
+            
+            \begin{array}{c c c|c c | c}
+            s_0 & i_1 & i_2 & S & R & s'_0\\
+            \hline
+            0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & 1 & 1 & 0 & 0\\
+            0 & 1 & 0 & 1 & 0 & 0\\
+            0 & 1 & 1 & 0 & 1 & 1\\
+            1 & 0 & 0 & 1 & 0 & 0\\
+            1 & 0 & 1 & 0 & 1 & 1\\
+            1 & 1 & 0 & 0 & 1 & 1\\
+            1 & 1 & 1 & 1 & 1 & 1\\
+            \end{array}
+            &      &
+        \end{array}
+        \end{equation*}
+        \noindent Minimizziamo ora le funzioni $S$, $R$ e $s^{'}_{0}$:
+        \begin{center}
+        \begin{karnaugh-map}[4][2][1][$i_1 i_0$][$s_0$]
+            \manualterms{0,1,1,0,1,0,0,1}
+            \implicant{1}{1}
+            \implicant{2}{2}
+            \implicant{4}{4}
+            \implicant{7}{7}
+        \end{karnaugh-map}
+        \end{center}
+        \begin{itemize}
+            \item $S=\sim s_0\cdot\sim i_1\cdot i_0 + \sim s_0\cdot i_1\cdot\sim i_0 + s_0\cdot\sim i_1\cdot\sim i_0 + s_0\cdot i_1\cdot i_0$
+        \end{itemize}
+        \begin{center}
+        \begin{karnaugh-map}[4][2][1][$i_1 i_0$][$s_0$]
+            \manualterms{0,0,0,1,0,1,1,1}
+            \implicant{3}{7}
+            \implicant{5}{7}
+            \implicant{7}{6}
+        \end{karnaugh-map}
+        \end{center}
+        \begin{itemize}
+            \item $R=i_1\cdot i_0 + s_0\cdot\ i_0 + s_0\cdot i_1$
+        \end{itemize}
+        \begin{center}
+        \begin{karnaugh-map}[4][2][1][$i_1 i_0$][$s_0$]
+            \manualterms{0,0,0,1,0,1,1,1}
+            \implicant{3}{7}
+            \implicant{5}{7}
+            \implicant{7}{6}
+        \end{karnaugh-map}
+        \end{center}
+        \begin{itemize}
+            \item $s^{'}_{0}=i_1\cdot i_0 + s_0\cdot\ i_0 + s_0\cdot i_1$
+        \end{itemize}
+        Si lascia agli studenti come esercizio il compito di disegnare i circuiti corrispondenti.
+        
+        \item Per prima cosa disegnamo l’automa a stati finiti che modella il sistema:
+        \begin{center}
+        \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto] 
+        \node[state,initial] (q_0)   {$q_0$}; 
+        \node[state] (q_1) [right=3cm] {$q_1$}; 
+        \node[state] (q_2) [right=6cm] {$q_2$}; 
+        \path[->] 
+        (q_0) edge[loop above] node{$01,10/0$} (q_0)
+              edge[bend left]  node  {$00,11/0$} (q_1)
+        (q_1) edge[bend below]  node  {$01,10/0$} (q_0)
+              edge[bend below]  node  {$00,11/0$} (q_2)
+        (q_2) edge[loop above] node{$00,11/1$} (q_2)
+              edge[bend left]  node  {$01,10/0$} (q_0)
+        
+        \end{tikzpicture} 
+        \end{center}
+        Essendo l'automa di Mealy l'outmpu viene inserito sugli archi uscenti da uno stato \`e non pi\`u all'interno dello stato. In particolare:
+
+        \begin{itemize}
+            \item $q_0$: codifica lo stato iniziali in cui si ricevono i primi due input
+            \item $q_1$: codifica lo stato in cui al primo ciclo di clock i due input sono uguali
+            \item $q_2$: codifica lo stato in cui al secondo ciclo di clock i due input sono ancora uguali
+        \end{itemize}
+        Definiamo ora la codifica degli stati e le funzioni output e next\texttt{\char`_}state:
+        \begin{equation*}
+        \begin{array}{c c c c c}
+            \begin{array}{c|c c}
+            Stato & s_1 & s_0\\
+            \hline
+            q_0 & 0 & 0 \\
+            q_1 & 0 & 1 \\
+            q_2 & 1 & 0 \\
+            -   & 1 & 1 
+            \end{array}
+            &      &
+        \end{array}
+        \end{equation*}
+        \begin{equation*}
+        \begin{array}{c c c c c}
+            \begin{array}{c c c c|c | c c}
+            s_1 & s_0 & i_1 & i_0 & o & s'_1 & s'_0\\
+            \hline
+            0 & 0 & 0 & 0 & 0 & 0 & 1\\
+            0 & 0 & 0 & 1 & 0 & 0 & 0\\
+            0 & 0 & 1 & 0 & 0 & 0 & 0\\
+            0 & 0 & 1 & 1 & 0 & 0 & 1\\
+            0 & 1 & 0 & 0 & 0 & 1 & 0\\
+            0 & 1 & 0 & 1 & 0 & 0 & 0\\
+            0 & 1 & 1 & 0 & 0 & 0 & 0\\
+            0 & 1 & 1 & 1 & 0 & 1 & 0\\
+            1 & 0 & 0 & 0 & 1 & 1 & 0\\
+            1 & 0 & 0 & 1 & 0 & 0 & 0\\
+            1 & 0 & 1 & 0 & 0 & 0 & 0\\
+            1 & 0 & 1 & 1 & 1 & 1 & 0\\
+            1 & 1 & 0 & 0 & x & x & x\\
+            1 & 1 & 0 & 1 & x & x & x\\
+            1 & 1 & 1 & 0 & x & x & x\\
+            1 & 1 & 1 & 1 & x & x & x\\
+            \end{array}
+            &      &
+        \end{array}
+        \end{equation*}
+        \\\\
+        \noindent Minimizziamo ora le funzioni $o$, $s'_1$ e $s'_0$:
+        \begin{center}
+        \begin{karnaugh-map}[4][4][1][$i_1 i_0$][$s_1 s_0$]
+            \manualterms{0,0,0,0, 0,0,0,0, 1,0,0,1, x=1,x=0,x=0,x=1}
+            \implicant{12}{8}
+            \implicant{15}{11}
+        \end{karnaugh-map}
+        \end{center}
+        \begin{itemize}
+            \item $o=s_1\cdot \sim i_1\cdot\sim i_0 + s_1\cdot i_1\cdot i_0$
+        \end{itemize}
+        \begin{center}
+        \begin{karnaugh-map}[4][4][1][$i_1 i_0$][$s_1 s_0$]
+            \manualterms{0,0,0,0, 1,0,0,1, 1,0,0,1, x=1,x=0,x=0,x=1}
+            \implicant{4}{12}
+            \implicant{7}{15}
+            \implicant{12}{8}
+            \implicant{15}{11}
+        \end{karnaugh-map}
+        \end{center}
+        \begin{itemize}
+            \item $s'_1=s_0\cdot \sim i_1\cdot\sim i_0 + s_0\cdot i_1\cdot i_0 + s_1\cdot \sim i_1\cdot\sim i_0 + s_1\cdot i_1\cdot i_0$
+        \end{itemize}
+        \begin{center}
+        \begin{karnaugh-map}[4][4][1][$i_1 i_0$][$s_1 s_0$]
+            \manualterms{1,0,0,1, 0,0,0,0, 0,0,0,0, x=0,x=0,x=0,x=0}
+            \implicant{0}{0}
+            \implicant{3}{3}
+        \end{karnaugh-map}
+        \end{center}
+        \begin{itemize}
+            \item $s'_0=\sim s_1\cdot\sim s_0\cdot\sim i_1\cdot\sim i_0 + \sim s_1\cdot\sim s_0\cdot i_1\cdot i_0$
+        \end{itemize}
+        Si lascia agli studenti come esercizio il compito di disegnare i circuiti corrispondenti.
+        
+\end{enumerate}
+
+
+\end{document}
